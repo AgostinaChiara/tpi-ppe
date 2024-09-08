@@ -7,6 +7,7 @@ from PIL import Image, ImageTk
 from config import COLOR_BARRA_SUPERIOR, COLOR_MENU_LATERAL, COLOR_CUERPO_PRINCIPAL, COLOR_MENU_CURSOR_ENCIMA
 import util.util_ventana as util_ventana
 import util.util_imagenes as util_img
+from tkfontawesome import icon_to_image
 
 model_path = "./best (1).pt"
 
@@ -15,6 +16,9 @@ cap = None
 # Configuración inicial de la ventana
 root = tk.Tk()
 logo = util_img.leer_imagen("./logo.png", (100, 100))
+
+# Diccionario para mantener las referencias de las imágenes de los íconos
+icon_images = {}
 
 def update_display(image):
     image = Image.fromarray(image)
@@ -153,8 +157,9 @@ def controles_barra_superior(barra_superior):
     labelTitulo.pack(side=tk.LEFT)
 
     # Botón del menú lateral
-    buttonMenuLateral = tk.Button(barra_superior, text="\uf0c9", font=font_awesome,
-                                  command=lambda: toggle_panel(menu_lateral), bd=0, bg=COLOR_BARRA_SUPERIOR, fg="white")
+    icon_images["menu"] = icon_to_image("bars", fill="#FFFFFF", scale_to_width=16)
+    buttonMenuLateral = tk.Button(barra_superior, image=icon_images["menu"],
+                                  command=lambda: toggle_panel(menu_lateral), bd=0, bg=COLOR_BARRA_SUPERIOR)
     buttonMenuLateral.pack(side=tk.LEFT)
 
     # Etiqueta de información
@@ -164,25 +169,32 @@ def controles_barra_superior(barra_superior):
 
 def controles_menu_lateral(menu_lateral):
     # Configuración del menú lateral
-    ancho_menu = 20
-    alto_menu = 2
     font_awesome = font.Font(family='FontAwesome', size=15)
 
+    icon_images["live"] = icon_to_image("video", fill="#FFFFFF", scale_to_width=16)
+    icon_images["upload"] = icon_to_image("upload", fill="#FFFFFF", scale_to_width=16)
+    icon_images["info"] = icon_to_image("info-circle", fill="#FFFFFF", scale_to_width=16)
+    icon_images["quit"] = icon_to_image("power-off", fill="#FFFFFF", scale_to_width=16)
+
     # Botones del menú lateral
-    buttonLive = tk.Button(menu_lateral, command=start_camera_detection)
-    buttonUpload = tk.Button(menu_lateral, command=upload_file)
-    buttonInfo = tk.Button(menu_lateral)
-    buttonQuit = tk.Button(menu_lateral, command=root.quit)
+    buttonLive = tk.Button(menu_lateral, image=icon_images["live"], text="Video en vivo", compound=tk.LEFT,
+                           command=start_camera_detection, bd=0, bg=COLOR_MENU_LATERAL, fg="white", font=font_awesome,
+                           padx=10)
+    buttonUpload = tk.Button(menu_lateral, image=icon_images["upload"], text="Subir archivo", compound=tk.LEFT,
+                            command=upload_file, bd=0, bg=COLOR_MENU_LATERAL, fg="white", font=font_awesome,
+                            padx=10)
+    buttonInfo = tk.Button(menu_lateral, image=icon_images["info"], text="Info", compound=tk.LEFT,
+                            bd=0, bg=COLOR_MENU_LATERAL, fg="white", font=font_awesome,
+                            padx=10)
+    buttonQuit = tk.Button(menu_lateral, image=icon_images["quit"], text="Salir", compound=tk.LEFT,
+                            command=root.destroy, bd=0, bg=COLOR_MENU_LATERAL, fg="white", font=font_awesome,
+                            padx=10)
 
-    buttons_info = [
-        ("Video en vivo", "\uf109", buttonLive),
-        ("Subir video/imagen", "\uf007", buttonUpload),
-        ("Info", "\uf129", buttonInfo),
-        ("Salir", "\uf013", buttonQuit)
-    ]
+    buttonLive.pack(side=tk.TOP, pady=20, anchor="w")
+    buttonUpload.pack(side=tk.TOP, pady=20, anchor="w")
+    buttonInfo.pack(side=tk.TOP, pady=20, anchor="w", fill=tk.X)
+    buttonQuit.pack(side=tk.TOP, pady=20, anchor="w", fill=tk.X)
 
-    for text, icon, button in buttons_info:
-        configurar_boton_menu(button, text, icon, font_awesome, ancho_menu, alto_menu)
 
 def controles_cuerpo(cuerpo_principal):
     # Limpiar el cuerpo principal
@@ -197,24 +209,6 @@ def controles_cuerpo(cuerpo_principal):
     content_label = ttk.Label(cuerpo_principal, font=('Segoe UI', 14))
     content_label.pack(expand=True, anchor="center")
 
-def configurar_boton_menu(button, text, icon, font_awesome, ancho_menu, alto_menu):
-    button.config(text=f"  {icon}    {text}", anchor="w", font=font_awesome,
-                  bd=0, bg=COLOR_MENU_LATERAL, fg="white", width=ancho_menu, height=alto_menu)
-    button.pack(side=tk.TOP)
-    bind_hover_events(button)
-
-def bind_hover_events(button):
-    # Asociar eventos Enter y Leave con la función dinámica
-    button.bind("<Enter>", lambda event: on_enter(event, button))
-    button.bind("<Leave>", lambda event: on_leave(event, button))
-
-def on_enter(event, button):
-    # Cambiar estilo al pasar el ratón por encima
-    button.config(bg=COLOR_MENU_CURSOR_ENCIMA, fg='white')
-
-def on_leave(event, button):
-    # Restaurar estilo al salir el ratón
-    button.config(bg=COLOR_MENU_LATERAL, fg='white')
 
 def toggle_panel(menu_lateral):
     # Alternar visibilidad del menú lateral
